@@ -131,7 +131,7 @@ const GameBoard = (() => {
 **************/
 const GameLogic = (() => {
 
-    //Variables to emable AI
+    //VARIABLES TO HANDLE AN AI PLAYER
     let computerAI = false;
     const aiSwitch = document.getElementById('aiSwitch');
     const aiText = document.getElementById('aiText');
@@ -142,7 +142,7 @@ const GameLogic = (() => {
         } else {
             aiText.style.color = 'darkgray';
         }
-        
+        if(currentPlayer.getName() === 'P2') makeComputerMove();
     }
 
     /******VARIABLES FOR PLAYER OBJECTS******/
@@ -176,14 +176,14 @@ const GameLogic = (() => {
         }
     }
 
-    //After a player takes their turn nextPlayer/currentPlayer variables need to be switched
+    //AFTER A TURN IS TAKEN SWAP THE CURRENT/NEXT PLAYERS
     const nextPlayerTurn = () => {
         tempPlayer = currentPlayer;
         currentPlayer = nextPlayer;
         nextPlayer = tempPlayer;
     }
 
-    /**********FUNCTION FOR RANDOM COMPUTER PLAYER******* */
+    /**********LOGIC FOR RANDOM COMPUTER PLAYER******* */
     const makeComputerMove = () => {
         const tempBoard = GameBoard.getBoard();
         while (true) {
@@ -197,6 +197,7 @@ const GameLogic = (() => {
         }
     }
 
+    //CHECK FOR A WINNER OR DRAW
     const checkGameOver = () => {
         if (GameBoard.getWinner()) {
             gameIsFinished(`${GameBoard.getWinner()} WINS THE GAME!!`);
@@ -209,7 +210,7 @@ const GameLogic = (() => {
         return false;
     }
 
-    //User presses the Reset Game button
+    //WHEN THE RESET BUTTON IS PRESSED
     const resetGame = () => {
         GameBoard.clearBoard();
         clearUIBoard();
@@ -218,16 +219,17 @@ const GameLogic = (() => {
         tempPlayer = undefined;
         currentPlayer = PlayerFactory('P1', 'X');
         nextPlayer = PlayerFactory('P2', 'O');
+        console.log(computerAI);
     }
 
-    //When reset it pressed, reset the UI
+    //RESET THE HTML UI
     const clearUIBoard = () => {
         for (i = 0; i < cells.length; i++) {
             cells[i].textContent = '';
         }
     }
 
-    //When the game is over, either from someone winner or a draw, this is run
+    //DISPLAY A MESSAGE WHEN THE GAME IS OVER
     const gameIsFinished = (m) => {
         gameOver.textContent = m;
         gameOver.style.display = 'block';
