@@ -3,31 +3,40 @@ const PlayerFactory = (name, symbol) => {
     symbol = symbol;
     getName = () => {
         return name;
-    } 
-    
+    }
+
     getSymbol = () => {
         return symbol;
-    } 
+    }
 
     introduceSelf = () => {
         console.log('Hi, my name is ' + name + ' and my symbol is ' + symbol);
     }
-    return {getName, getSymbol, introduceSelf}
+    return { getName, getSymbol, introduceSelf }
 }
 
-
-
+/*************
+    GameBoard
+    The GameBoard object holds an array representing the current state of the game
+    It exposes methods to clearBoard, makeMove, checkValidMove, printBoard, and checkForWinner 
+**************/
 const GameBoard = (() => {
     let board = Array.apply(null, Array(8)).map(function () { })
+    let movesMade = 0;
+    let winner = undefined;
 
     const clearBoard = () => {
-        board = Array.apply(null, Array(8)).map(function () { })
+        board = Array.apply(null, Array(8)).map(function () { });
+        winner = undefined;
+        movesMade = 0;
     }
 
-    const makeMove = (marker, position) => {
+    const makeMove = (symbol, position) => {
+        if (winner) return;
         if (checkValidMove(position)) {
-            board[position] = marker;
-            console.log(printBoard());
+            board[position] = symbol;
+            movesMade++;
+            checkForWinner(symbol, position);
             return true;
         }
         return false;
@@ -39,15 +48,60 @@ const GameBoard = (() => {
         } else return false;
     }
 
-    const checkForWinner = () => {
+    const checkForWinner = (symbol, position) => {
+        if (checkRow(symbol, position) || checkCol(symbol, position) || checkDiag(symbol, position)) {
+            winner = symbol;
+        }
+    }
+
+    const getWinner = () => {
+        return winner;
+    }
+    /*******CODE TO CHECK FOR WINNING ROWS*********/
+    const checkRow = (symbol, position) => {
+        rowVar = Math.trunc(position / 3);
+        for (i = rowVar * 3; i <= (rowVar * 3) + 2; i++) {
+            if (board[i] != symbol) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    const checkCol = (symbol, position) => {
+        colVar = position % 3;
+        for (i = colVar; i <= colVar + 6; i = (i + 3)) {
+            if (board[i] != symbol) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    const checkDiag = (symbol, position) => {
+        if ('246'.includes(position)) {
+            if ([board[2], board[4], board[6]].every(v => v === board[2])) return true;;
+        }
+        if ('048'.includes(position)) {
+            if ([board[0], board[4], board[8]].every(v => v === board[0])) return true;;
+        }
+        return false;
+    }
+    /******************************************** */
+    const hasSomeoneWon = () => {
+        if (winner) return true;
+        return false;
+    }
+
+    const isDraw = () => {
+        if (!winner && movesMade === 9) return true;
+        return false;
     }
 
     const printBoard = () => {
         let boardString = '';
-
         for (i = 0; i < 3; i++) {
             for (j = 0; j < 3; j++) {
-
                 if (board[(i * 3) + j] != undefined) {
                     boardString += (board[(i * 3) + j])
                 } else {
@@ -64,45 +118,121 @@ const GameBoard = (() => {
         return boardString;
     }
 
-    return { clearBoard, makeMove, checkValidMove, printBoard };
+    const getBoard = () => {
+        return board.slice();
+    }
+
+    return { clearBoard, makeMove, checkValidMove, printBoard, getWinner, hasSomeoneWon, isDraw, getBoard };
 })();
 
+/*************  
+    GameLogic
+    The GameLogic object handles player input, communicates with the GameBoard, and updates the screen
+**************/
 const GameLogic = (() => {
-    //Variables to hold player objects
-    let player1 = PlayerFactory('P1', 'X');
-    let player2 = PlayerFactory('P2', 'O');
-    let currentPlayer = player1;
 
-    //Variables for user input
-    const cellContainer = document.querySelector('#cellContainer');
+    //Variables to emable AI
+    let computerAI = false;
+    const aiSwitch = document.getElementById('aiSwitch');
+    const aiText = document.getElementById('aiText');
+    aiSwitch.onclick = () => {
+        computerAI = !computerAI;
+        if(computerAI === true) {
+            aiText.style.color = '#2196F3';
+        } else {
+            aiText.style.color = 'darkgray';
+        }
+        
+    }
+
+    /******VARIABLES FOR PLAYER OBJECTS******/
+    let tempPlayer;
+    let currentPlayer = PlayerFactory('P1', 'X');
+    let nextPlayer = PlayerFactory('P2', 'O');
+
+
+    //******VARIABLES FOR USER INPUT******/
+    const cellContainer = document.getElementById('cellContainer');
+    const resetButton = document.getElementById('resetButton');
+    const cells = document.querySelectorAll('.cell');
+    const gameOverDialog = document.getElementById('gameOver');
+
     cellContainer.addEventListener('click', (event) => {
         takeInput(event);
     });
+    resetButton.addEventListener('click', (event) => {
+        resetGame();
+    });
 
-    //****CODE TO HANDLE USER INPUT******/
+    //******CODE TO HANDLE USER INPUT******/
     function takeInput(event) {
-        
-
-        event.target.textContent = currentPlayer.getSymbol();
-
+        if (GameBoard.makeMove(currentPlayer.getSymbol(), event.target.dataset.id)) {
+            event.target.textContent = currentPlayer.getSymbol();
+            nextPlayerTurn();
+            if (checkGameOver()) {
+                return;
+            }
+            if (computerAI && currentPlayer.getName() === 'P2') makeComputerMove();
+        }
     }
 
-    /*
-    initialise game
-        clear  board
-        create player1 object
-        create player2 object
+    //After a player takes their turn nextPlayer/currentPlayer variables need to be switched
+    const nextPlayerTurn = () => {
+        tempPlayer = currentPlayer;
+        currentPlayer = nextPlayer;
+        nextPlayer = tempPlayer;
+    }
 
-    when player makes move
-        exec Gameboard.makeMove         //make the move
-        if response = true
-            exec DisplayController          //update the screen
-            exec Gameboard.checkForWinner   //check if someone has won
-                if someone has won
-                    display winning message
-                    reset the game
+    /**********FUNCTION FOR RANDOM COMPUTER PLAYER******* */
+    const makeComputerMove = () => {
+        const tempBoard = GameBoard.getBoard();
+        while (true) {
+            const move = Math.floor(Math.random() * 9);
+            if (GameBoard.makeMove(currentPlayer.getSymbol(), move)) {
+                cellContainer.querySelector(`[data-id='${move}']`).textContent = currentPlayer.getSymbol();
+                nextPlayerTurn();
+                checkGameOver();
+                return;
+            }
+        }
+    }
 
-    */
+    const checkGameOver = () => {
+        if (GameBoard.getWinner()) {
+            gameIsFinished(`${GameBoard.getWinner()} WINS THE GAME!!`);
+            return true;
+        }
+        if (GameBoard.isDraw()) {
+            gameIsFinished(`IT'S A DRAW!!`);
+            return true;
+        }
+        return false;
+    }
+
+    //User presses the Reset Game button
+    const resetGame = () => {
+        GameBoard.clearBoard();
+        clearUIBoard();
+        gameOverDialog.textContent = ``
+        gameOverDialog.style.display = 'none';
+        tempPlayer = undefined;
+        currentPlayer = PlayerFactory('P1', 'X');
+        nextPlayer = PlayerFactory('P2', 'O');
+    }
+
+    //When reset it pressed, reset the UI
+    const clearUIBoard = () => {
+        for (i = 0; i < cells.length; i++) {
+            cells[i].textContent = '';
+        }
+    }
+
+    //When the game is over, either from someone winner or a draw, this is run
+    const gameIsFinished = (m) => {
+        gameOver.textContent = m;
+        gameOver.style.display = 'block';
+    }
+
 })();
 
 

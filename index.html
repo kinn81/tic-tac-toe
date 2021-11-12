@@ -1,24 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="styles.css" rel="stylesheet">
     <script src="./tic-tac-toe.js" defer></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,700;1,700&display=swap"
+        rel="stylesheet">
+
     <title>Document</title>
 </head>
+
 <body>
-    <div id="cellContainer">
-        <div data-id="cell0" class="cell"></div>
-        <div data-id="cell1"  class="cell"></div>
-        <div data-id="cell2"  class="cell"></div>
-        <div data-id="cell3"  class="cell"></div>
-        <div data-id="cell4"  class="cell"></div>
-        <div data-id="cell5"  class="cell"></div>
-        <div data-id="cell6"  class="cell"></div>
-        <div data-id="cell7"  class="cell"></div>
-        <div data-id="cell8"  class="cell"></div>
+    <div id="gameCavas">
+        <div id="flexContainer1">
+            <div id="gameOverContainer">
+                <span id="gameOver" class="blinkMe">X WINS THE GAME!</span>
+            </div>
+            <div id="aiDiv">
+                <label class="switch">
+                    <input type="checkbox" id='aiSwitch'>
+                    <span class="slider round"></span>
+                </label>
+                <label id="aiText">Enable AI</label>
+            </div>
+            <div id="cellContainer">
+                <div data-id="0" class="cell"></div>
+                <div data-id="1" class="cell"></div>
+                <div data-id="2" class="cell"></div>
+                <div data-id="3" class="cell"></div>
+                <div data-id="4" class="cell"></div>
+                <div data-id="5" class="cell"></div>
+                <div data-id="6" class="cell"></div>
+                <div data-id="7" class="cell"></div>
+                <div data-id="8" class="cell"></div>
+            </div>
+            <div id="buttonContainer">
+                <button id="resetButton">Reset Game</button>
+            </div>
+        </div>
     </div>
+
 </body>
+
 </html>
