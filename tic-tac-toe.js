@@ -132,17 +132,17 @@ const GameBoard = (() => {
 const GameLogic = (() => {
 
     //VARIABLES TO HANDLE AN AI PLAYER
-    let computerAI = false;
     const aiSwitch = document.getElementById('aiSwitch');
+    let computerAI =  aiSwitch.checked;
     const aiText = document.getElementById('aiText');
     aiSwitch.onclick = () => {
-        computerAI = !computerAI;
-        if(computerAI === true) {
+        computerAI = aiSwitch.checked;
+        if(computerAI) {
             aiText.style.color = '#2196F3';
         } else {
             aiText.style.color = 'darkgray';
         }
-        if(currentPlayer.getName() === 'P2') makeComputerMove();
+        if(currentPlayer.getName() === 'P2' && (!GameBoard.getWinner() && !GameBoard.isDraw())) makeComputerMove();
     }
 
     /******VARIABLES FOR PLAYER OBJECTS******/
@@ -194,6 +194,7 @@ const GameLogic = (() => {
                 checkGameOver();
                 return;
             }
+            console.log('loop');
         }
     }
 
@@ -219,7 +220,6 @@ const GameLogic = (() => {
         tempPlayer = undefined;
         currentPlayer = PlayerFactory('P1', 'X');
         nextPlayer = PlayerFactory('P2', 'O');
-        console.log(computerAI);
     }
 
     //RESET THE HTML UI
